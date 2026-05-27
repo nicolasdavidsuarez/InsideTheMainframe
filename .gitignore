@@ -1,0 +1,45 @@
+# Unreal Engine
+Binaries/
+Build/
+DerivedDataCache/
+Intermediate/
+Saved/
+.vs/
+.vscode/
+*.VC.db
+*.opensdf
+*.opendb
+*.sdf
+*.sln
+*.suo
+*.xcworkspace
+*.xcodeproj
+
+# Compilados
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.obj
+*.o
+
+# Archivos generados
+*.generated.h
+*.gen.cpp
+
+# Logs
+Saved/Logs/
+Saved/Crashes/
+Saved/StagedBuilds/
+
+# Config de usuario (no compartir)
+Saved/Config/
+
+# Paquetes y builds
+Packages/
+Releases/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
