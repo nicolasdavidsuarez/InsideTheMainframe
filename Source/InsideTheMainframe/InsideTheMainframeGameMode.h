@@ -40,7 +40,10 @@ protected:
     FTimerHandle MatchTimerHandle;
 
    //jugadores Suficientes?
+    public:
     void TryStartMatch();
+    void StartMatchDelayed();
+    void UpdatePlayerCounts();
 
     // Elige al azar un jugador y lo marca como Virus inicial
     void SelectInitialVirus();

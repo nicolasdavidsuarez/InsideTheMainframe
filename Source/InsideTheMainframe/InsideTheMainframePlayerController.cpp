@@ -80,6 +80,24 @@ void AInsideTheMainframePlayerController::CreateHUD()
         bHUDCreated = true;
         UE_LOG(LogTemp, Log, TEXT("[CLIENT] HUD creado y añadido al viewport"));
     }
+    
+    HUDWidgetInstance = CreateWidget<UUserWidget>(this, HUDWidgetClass);
+    if (HUDWidgetInstance)
+    {
+        HUDWidgetInstance->AddToViewport();
+        bHUDCreated = true;
+
+        // Mostrar rol pendiente si llegó antes que el HUD
+        if (bHasPendingRole)
+        {
+            if (UInsideTheMainframeHUD* HUD = 
+                Cast<UInsideTheMainframeHUD>(HUDWidgetInstance))
+            {
+                HUD->ShowRoleNotification(PendingRole);
+                bHasPendingRole = false;
+            }
+        }
+    }
 }
 
 // -------------------------------------------------------------------------
@@ -115,21 +133,25 @@ void AInsideTheMainframePlayerController::UpdateHUDCounters(
 // Client_ShowRoleNotification
 // Se ejecuta en el cliente dueño cuando el servidor le asigna un rol
 // -------------------------------------------------------------------------
+
 void AInsideTheMainframePlayerController::Client_ShowRoleNotification_Implementation(
     EPlayerRole NewRole)
 {
-    FString RoleText = (NewRole == EPlayerRole::Virus)
-        ? TEXT("VIRUS — infectá a todos")
-        : TEXT("ANTIVIRUS — sobreviví hasta el final");
-
-    UE_LOG(LogTemp, Warning, TEXT("[CLIENT] Rol asignado: %s"), *RoleText);
-
-    // Acá mostrás un widget de notificación con el rol
-    // ShowRolePopup(Role);
+    GEngine->AddOnScreenDebugMessage(-1,10.f, FColor::Red,
+         TEXT("[ROL] Mostrando rol pendiente"));
     if (UInsideTheMainframeHUD* HUD = 
-    Cast<UInsideTheMainframeHUD>(HUDWidgetInstance))
+        Cast<UInsideTheMainframeHUD>(HUDWidgetInstance))
     {
         HUD->ShowRoleNotification(NewRole);
+    }
+    else
+    {
+        // HUD todavía no existe, guardar para después
+        PendingRole = NewRole;
+        bHasPendingRole = true;
+        UE_LOG(LogTemp, Warning, TEXT("[ROL] HUD null, guardando rol pendiente"));
+        GEngine->AddOnScreenDebugMessage(-1,10.f, FColor::Red,
+            TEXT("[ROL] HUD null, guardando rol pendiente"));
     }
 }
 

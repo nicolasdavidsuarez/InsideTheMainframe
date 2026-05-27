@@ -5,6 +5,7 @@
 #include "InsideTheMainframePlayerState.h"
 
 #include "InsideTheMainframeCharacter.h"
+#include "InsideTheMainframeGameMode.h"
 #include "InsideTheMainframeGameState.h"
 #include "InsideTheMainframePlayerController.h"
 #include "Net/UnrealNetwork.h"
@@ -42,9 +43,24 @@ void AInsideTheMainframePlayerState::SetAsVirus()
 {
     if (!HasAuthority()) return;
 
+    GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red,
+       TEXT("[SET_AS_VIRUS] Llamado"));
+    
     PlayerRole = EPlayerRole::Virus;
     bIsVirus   = true;
 
+    if (UWorld* World = GetWorld())
+    {
+        AInsideTheMainframeGameMode* GM =
+            Cast<AInsideTheMainframeGameMode>(World->GetAuthGameMode());
+
+        GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red,
+            FString::Printf(TEXT("[SET_AS_VIRUS] GM=%s"),
+                GM ? TEXT("VALIDO") : TEXT("NULL")));
+
+        if (GM) GM->UpdatePlayerCounts();
+    }
+    
     // Verificar que el Owner existe antes de castear
     AController* Controller = Cast<AController>(GetOwner());
     if (Controller)
@@ -64,12 +80,10 @@ void AInsideTheMainframePlayerState::SetAsVirus()
     // Actualizar contadores
     if (UWorld* World = GetWorld())
     {
-        if (AInsideTheMainframeGameState* GS =
-            World->GetGameState<AInsideTheMainframeGameState>())
+        if (AInsideTheMainframeGameMode* GM =
+           Cast<AInsideTheMainframeGameMode>(World->GetAuthGameMode()))
         {
-            GS->VirusCount++;
-            GS->AntivirusCount = FMath::Max(0, GS->AntivirusCount - 1);
-            GS->OnRep_Counters();
+            GM->UpdatePlayerCounts();
         }
     }
 

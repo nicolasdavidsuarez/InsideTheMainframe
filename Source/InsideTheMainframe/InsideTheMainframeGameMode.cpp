@@ -17,7 +17,7 @@ AInsideTheMainframeGameMode::AInsideTheMainframeGameMode()
     DefaultPawnClass      = AInsideTheMainframeCharacter::StaticClass();
 
     MinPlayersToStart = 2;  
-    MatchDuration     = 180.f;
+    MatchDuration     = 60.f;
     bMatchStarted     = false;
 }
 
@@ -48,19 +48,65 @@ void AInsideTheMainframeGameMode::Logout(AController* Exiting)
 void AInsideTheMainframeGameMode::TryStartMatch()
 {
     if (bMatchStarted) return;
+    
+    /*AGameStateBase* GS = GetGameState<AGameStateBase>();
+    GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red,
+        FString::Printf(TEXT("PlayerArray.Num() = %d / GetNumPlayers() = %d"),
+            GS ? GS->PlayerArray.Num() : -1, GetNumPlayers()));*/
+    
     if (GetNumPlayers() < MinPlayersToStart) return;
 
     bMatchStarted = true;
     
+    FTimerHandle StartDelayHandle;
+    GetWorldTimerManager().SetTimer(StartDelayHandle, this,
+        &AInsideTheMainframeGameMode::StartMatchDelayed, 1.f, false);
+    
+    /*
     if (AInsideTheMainframeGameState* GS = GetMainframeGameState())
     {
-        GS->AntivirusCount   = GetNumPlayers();
-        GS->VirusCount       = 0;
         GS->TimeRemaining    = MatchDuration;
         GS->bMatchInProgress = true;
+        GS->AntivirusCount = GetNumPlayers();
+        GS->VirusCount     = 0;
     }
     
+    
     SelectInitialVirus();
+    UpdatePlayerCounts();  // ← DESPUÉS de asignar roles
+
+    GetWorldTimerManager().SetTimer(
+        MatchTimerHandle, this,
+        &AInsideTheMainframeGameMode::OnMatchTick,
+        1.f, true);
+        */
+}
+
+void AInsideTheMainframeGameMode::StartMatchDelayed()
+{
+    AGameStateBase* GS = GetGameState<AGameStateBase>();
+    GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red,
+        FString::Printf(TEXT("[START] PlayerArray=%d GetNumPlayers=%d"),
+            GS ? GS->PlayerArray.Num() : -1, GetNumPlayers()));
+
+    // Verificar cada PlayerState
+    if (GS)
+    {
+        for (int32 i = 0; i < GS->PlayerArray.Num(); i++)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Orange,
+                FString::Printf(TEXT("[PS %d] = %s"), i,
+                    GS->PlayerArray[i] ? *GS->PlayerArray[i]->GetPlayerName() : TEXT("NULL")));
+        }
+    AInsideTheMainframeGameState* MGS = Cast<AInsideTheMainframeGameState>(GS);
+        MGS->TimeRemaining    = MatchDuration;
+        MGS->bMatchInProgress = true;
+        MGS->AntivirusCount   = GetNumPlayers();
+        MGS->VirusCount       = 0;
+    }
+
+    SelectInitialVirus();
+    UpdatePlayerCounts();
 
     GetWorldTimerManager().SetTimer(
         MatchTimerHandle, this,
@@ -68,6 +114,31 @@ void AInsideTheMainframeGameMode::TryStartMatch()
         1.f, true);
 }
 
+void AInsideTheMainframeGameMode::UpdatePlayerCounts()
+{
+    AInsideTheMainframeGameState* GS = GetMainframeGameState();
+    if (!GS) return;
+
+    int32 Virus = 0;
+    int32 Antivirus = 0;
+
+    for (APlayerState* PS : GS->PlayerArray)
+    {
+        AInsideTheMainframePlayerState* MPS =
+            Cast<AInsideTheMainframePlayerState>(PS);
+        if (!MPS) continue;
+        if (MPS->IsVirus()) Virus++;
+        else                Antivirus++;
+    }
+
+    GS->VirusCount     = Virus;
+    GS->AntivirusCount = Antivirus;
+
+     GEngine->AddOnScreenDebugMessage(-1,10.0f, FColor::Yellow, 
+        FString::Printf(TEXT("Contadores: Virus=%d Antivirus=%d"), Virus, Antivirus));
+    
+    
+}
 
 void AInsideTheMainframeGameMode::SelectInitialVirus()
 {

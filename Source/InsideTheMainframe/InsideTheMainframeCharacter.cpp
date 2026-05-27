@@ -353,6 +353,7 @@ void AInsideTheMainframeCharacter::OnBecomeVirus()
     
 	// Solo actualizar la variable del Character
 	// NO llamar a PS->SetAsVirus() — ya venimos desde ahí
+	
 	bIsVirus = true;
 
 	UE_LOG(LogTemp, Warning, TEXT("[CHARACTER] %s bIsVirus seteado a true"), *GetName());

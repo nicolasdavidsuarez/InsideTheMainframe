@@ -57,7 +57,9 @@ public:
     // -------------------------------------------------------------------------
     // Funciones de HUD (corren en el cliente)
     // -------------------------------------------------------------------------
-
+    EPlayerRole PendingRole;
+    bool bHasPendingRole = false;
+    
     // Crea e inicializa el widget HUD en pantalla
     UFUNCTION(BlueprintCallable, Category = "HUD")
     void CreateHUD();

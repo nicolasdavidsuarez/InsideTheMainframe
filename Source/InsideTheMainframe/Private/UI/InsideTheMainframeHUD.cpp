@@ -35,12 +35,15 @@ void UInsideTheMainframeHUD::NativeTick(const FGeometry& MyGeometry, float InDel
 {
     Super::NativeTick(MyGeometry, InDeltaTime);
 
-    // Leer el GameState directamente — siempre tiene los datos actualizados
     if (UWorld* World = GetWorld())
     {
         if (AInsideTheMainframeGameState* GS =
             World->GetGameState<AInsideTheMainframeGameState>())
         {
+            GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::Cyan,
+                FString::Printf(TEXT("[HUD] bMatchInProgress=%d Virus=%d Antivirus=%d"),
+                    GS->bMatchInProgress, GS->VirusCount, GS->AntivirusCount));
+
             if (GS->bMatchInProgress)
             {
                 UpdateTimer(GS->TimeRemaining);
