@@ -58,8 +58,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Input")
 	UInputAction* MouseLookAction;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	UInputAction* AimAction;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	UInputAction* ShotAction;
+	
 
 	// En la sección protected:
 	UPROPERTY(VisibleAnywhere, Category = "Effects")
@@ -102,6 +106,17 @@ public:
 
     UFUNCTION(Server, Reliable, WithValidation)
     void Server_RechargeFromCapacitor();
+	
+	// Clase del proyectil según rol — asignadas desde el BP hijo
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	TSubclassOf<AActor> VirusProjectileClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	TSubclassOf<AActor> AntivirusProjectileClass;
+
+	// Punto de spawn del proyectil — un socket o un componente en el mesh
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	FName ProjectileSpawnSocket = TEXT("ProjectileSpawn");
 	
 	public:
     // -------------------------------------------------------------------------
@@ -209,6 +224,11 @@ protected:
 	virtual void BeginPlay() override;
 
 protected:
+	
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_Shooting();
+
+	void Shooting();
 
 	/** Initialize input action bindings */
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;

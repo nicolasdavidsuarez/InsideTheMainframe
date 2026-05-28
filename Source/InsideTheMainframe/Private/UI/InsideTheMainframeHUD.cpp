@@ -2,6 +2,8 @@
 
 
 #include "Public/UI/InsideTheMainframeHUD.h"
+
+#include "InsideTheMainframeCharacter.h"
 #include "InsideTheMainframeGameState.h"
 #include "InsideTheMainframePlayerState.h"
 #include "Components/TextBlock.h"
@@ -48,18 +50,41 @@ void UInsideTheMainframeHUD::NativeTick(const FGeometry& MyGeometry, float InDel
             {
                 UpdateTimer(GS->TimeRemaining);
                 UpdateCounters(GS->VirusCount, GS->AntivirusCount);
+                UpdatePlayerRole(); 
+                UpdateEnergyBar();
             }
         }
     }
 }
 
+
+void UInsideTheMainframeHUD::UpdateEnergyBar()
+{
+    if (!ProgressBar_Energy) return;
+
+    APlayerController* PC = GetOwningPlayer();
+    if (!PC) return;
+
+    AInsideTheMainframeCharacter* Character =
+        Cast<AInsideTheMainframeCharacter>(PC->GetPawn());
+    if (!Character) return;
+
+    float Percent = Character->Energy / Character->MaxEnergy;
+    ProgressBar_Energy->SetPercent(Percent);
+
+    // Opcional — texto numérico
+    if (Text_Energy)
+        Text_Energy->SetText(FText::FromString(
+            FString::Printf(TEXT("%.0f / %.0f"), Character->Energy, Character->MaxEnergy)));
+}
 // -------------------------------------------------------------------------
 // UpdateTimer
 // -------------------------------------------------------------------------
 void UInsideTheMainframeHUD::UpdateTimer(float TimeRemaining)
 {
     if (Text_Timer)
-        Text_Timer->SetText(FormatTime(TimeRemaining));
+        Text_Timer->SetText(FText::FromString(
+       TEXT("SCAN C: Disk... Remainig time:  ") + FormatTime(TimeRemaining).ToString()));
 }
 
 // -------------------------------------------------------------------------
@@ -157,4 +182,18 @@ void UInsideTheMainframeHUD::ShowInfectionWarning(bool bShow, float Progress)
         ProgressBar_Infection->SetVisibility(ESlateVisibility::Visible);
     }
        
+}
+void UInsideTheMainframeHUD::UpdatePlayerRole()
+{
+    if (!Text_PlayerRole) return;
+
+    APlayerController* PC = GetOwningPlayer();
+    if (!PC) return;
+
+    AInsideTheMainframePlayerState* PS =
+        PC->GetPlayerState<AInsideTheMainframePlayerState>();
+    if (!PS) return;
+
+    FString RoleText = PS->IsVirus() ? TEXT("VIRUS") : TEXT("ANTIVIRUS");
+    Text_PlayerRole->SetText(FText::FromString(RoleText));
 }

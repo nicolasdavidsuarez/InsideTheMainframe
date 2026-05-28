@@ -116,6 +116,61 @@ void AInsideTheMainframeCharacter::BeginPlay()
 	}
 }
 
+void AInsideTheMainframeCharacter::Shooting()
+{
+	
+	if (!HasAuthority()) 
+	{
+		Server_Shooting();
+		return;
+	}
+	
+    if (!TrySpendEnergy(10)) return;
+	
+	AInsideTheMainframePlayerState* PS = GetPlayerState<AInsideTheMainframePlayerState>();
+	if (!PS || !bIsAlive) return;
+
+	// Elegir clase según rol
+	TSubclassOf<AActor> ProjectileClass = PS->IsVirus() 
+		? VirusProjectileClass 
+		: AntivirusProjectileClass;
+
+	if (!ProjectileClass) 
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[SHOOT] No hay clase de proyectil asignada"));
+		return;
+	}
+
+	// Spawn desde el socket del mesh o desde la posición del personaje
+	FVector SpawnLocation;
+	FRotator SpawnRotation = GetBaseAimRotation();
+
+	if (GetMesh() && GetMesh()->DoesSocketExist(ProjectileSpawnSocket))
+		SpawnLocation = GetMesh()->GetSocketLocation(ProjectileSpawnSocket);
+	else
+		SpawnLocation = GetActorLocation() + GetActorForwardVector() * 100.f;
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner   = this;
+	SpawnParams.Instigator = GetInstigator();
+	
+
+	GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnLocation, SpawnRotation, SpawnParams);
+
+	UE_LOG(LogTemp, Warning, TEXT("[SHOOT] %s disparó como %s"),
+		*GetName(), PS->IsVirus() ? TEXT("VIRUS") : TEXT("ANTIVIRUS"));
+}
+
+bool AInsideTheMainframeCharacter::Server_Shooting_Validate()
+{
+	return bIsAlive;
+}
+
+void AInsideTheMainframeCharacter::Server_Shooting_Implementation()
+{
+	Shooting();
+}
+
 void AInsideTheMainframeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	// Set up action bindings
@@ -136,6 +191,8 @@ void AInsideTheMainframeCharacter::SetupPlayerInputComponent(UInputComponent* Pl
 		
 		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Started,this, &AInsideTheMainframeCharacter::StartAim);
 		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed,this, &AInsideTheMainframeCharacter::StopAim);
+		
+		EnhancedInputComponent->BindAction(ShotAction, ETriggerEvent::Started,this, &AInsideTheMainframeCharacter::Shooting);
 	}
 	else
 	{
@@ -350,12 +407,11 @@ void AInsideTheMainframeCharacter::OnBecomeVirus()
 {
    
 	if (!HasAuthority()) return;
-    
 	// Solo actualizar la variable del Character
 	// NO llamar a PS->SetAsVirus() — ya venimos desde ahí
 	
 	bIsVirus = true;
-
+	BP_VirusChange(bIsVirus);
 	UE_LOG(LogTemp, Warning, TEXT("[CHARACTER] %s bIsVirus seteado a true"), *GetName());
 }
 
@@ -513,11 +569,12 @@ void AInsideTheMainframeCharacter::OnRep_Energy()
 // ActivateCone — input del cliente, manda al servidor
 // -------------------------------------------------------------------------
 void AInsideTheMainframeCharacter::ActivateCone()
-{
-    if (!bIsVirus || !bIsAlive) return;
-    if (bConeActive) return;   // Ya está activo
- 
-    Server_ActivateCone();
+{   // Leer rol desde PlayerState — es la fuente de verdad
+	AInsideTheMainframePlayerState* PS = GetPlayerState<AInsideTheMainframePlayerState>();
+	if (!PS || !PS->IsVirus() || !bIsAlive) return;
+	if (bConeActive) return;
+
+	Server_ActivateCone();
 }
  
 // -------------------------------------------------------------------------
@@ -525,9 +582,10 @@ void AInsideTheMainframeCharacter::ActivateCone()
 // -------------------------------------------------------------------------
 bool AInsideTheMainframeCharacter::Server_ActivateCone_Validate()
 {
-    if (!bIsVirus || !bIsAlive) return false;
-    if (Energy < AbilityCost) return false;
-    return true;
+	AInsideTheMainframePlayerState* PS = GetPlayerState<AInsideTheMainframePlayerState>();
+	if (!PS || !PS->IsVirus() || !bIsAlive) return false;
+	if (Energy < AbilityCost) return false;
+	return true;
 }
  
 void AInsideTheMainframeCharacter::Server_ActivateCone_Implementation()
@@ -592,6 +650,8 @@ void AInsideTheMainframeCharacter::ConeTickUpdate()
         if (!CurrentTargets.Contains(TrackedTarget))
         {
             CancelInfectionOnTarget(TrackedTarget);
+        	TrackedTarget->bBeingInfected = false;
+        	TrackedTarget->InfectionProgress = 0.f;
         }
     }
  
@@ -601,19 +661,36 @@ void AInsideTheMainframeCharacter::ConeTickUpdate()
         if (!Target || !Target->bIsAlive || Target->bIsVirus) continue;
  
         // Inicializar timer si es la primera vez que entra al cono
-        if (!InfectionTimers.Contains(Target))
+        /*if (!InfectionTimers.Contains(Target))
         {
             InfectionTimers.Add(Target, 0.f);
             // Avisar al target que está siendo infectado
-            Target->Multicast_StartBeingInfected(true);
+            //Target->Multicast_StartBeingInfected(true);
+        	Target->bBeingInfected = true; 
             UE_LOG(LogTemp, Warning, TEXT("[CONE] %s entró al cono"), *Target->GetName());
-        }
+        }*/
  
+    	// Cuando entra al cono
+    	if (!InfectionTimers.Contains(Target))
+    	{
+    		InfectionTimers.Add(Target, 0.f);
+    		Target->bBeingInfected = true;
+    		// Para el jugador servidor — OnRep no se dispara en servidor
+    		if (Target->IsLocallyControlled())
+    			if (AInsideTheMainframePlayerController* PC = Target->GetMainframePlayerController())
+    				PC->UpdateHUDInfectionWarning(true, 0.f);
+    		UE_LOG(LogTemp, Warning, TEXT("[CONE] %s entró al cono"), *Target->GetName());
+    	}
+    	
         // Incrementar el timer
         InfectionTimers[Target] += 0.1f;
  
         // Actualizar progreso replicado para el HUD
         Target->InfectionProgress = InfectionTimers[Target] / InfectionTime;
+    	
+    	if (Target->IsLocallyControlled())
+    		if (AInsideTheMainframePlayerController* PC = Target->GetMainframePlayerController())
+    			PC->UpdateHUDInfectionWarning(true, Target->InfectionProgress);
  
         UE_LOG(LogTemp, Verbose, TEXT("[CONE] %s progreso: %.1f / %.1f"),
             *Target->GetName(), InfectionTimers[Target], InfectionTime);
@@ -625,7 +702,11 @@ void AInsideTheMainframeCharacter::ConeTickUpdate()
             Target->Multicast_StartBeingInfected(false);
             Target->InfectionProgress = 0.f;
             InfectionTimers.Remove(Target);
-            Target->OnBecomeVirus();
+            //Target->OnBecomeVirus();
+        	if (AInsideTheMainframePlayerState* TargetPS =Target->GetPlayerState<AInsideTheMainframePlayerState>())
+        	{
+        		TargetPS->SetAsVirus();
+        	}
  
             // Notificar al PlayerController del infectado
             if (AInsideTheMainframePlayerController* PC =
@@ -707,6 +788,11 @@ void AInsideTheMainframeCharacter::CancelInfectionOnTarget(
     Target->Multicast_StartBeingInfected(false);
  
     UE_LOG(LogTemp, Warning, TEXT("[CONE] %s escapó del cono"), *Target->GetName());
+	
+	Target->bBeingInfected = false;
+	if (Target->IsLocallyControlled())
+		if (AInsideTheMainframePlayerController* PC = Target->GetMainframePlayerController())
+			PC->UpdateHUDInfectionWarning(false, 0.f);
 }
 
 void AInsideTheMainframeCharacter::StartAim()

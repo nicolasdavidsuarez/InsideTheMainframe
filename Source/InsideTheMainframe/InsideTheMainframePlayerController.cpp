@@ -172,6 +172,11 @@ void AInsideTheMainframePlayerController::Client_ShowEndScreen_Implementation(
     UE_LOG(LogTemp, Warning, TEXT("[CLIENT] Partida terminada. Yo %s"),
         bIWon ? TEXT("GANÉ") : TEXT("PERDÍ"));
 
+    UE_LOG(LogTemp, Warning, TEXT("[CLIENT] ShowEndScreen llamado. Gané=%s HUDInstance=%s"),
+    bIWon ? TEXT("SI") : TEXT("NO"),
+    HUDWidgetInstance ? TEXT("VALIDO") : TEXT("NULL"));  // ← esto nos dice todo
+
+    
     if (UInsideTheMainframeHUD* HUD =
         Cast<UInsideTheMainframeHUD>(HUDWidgetInstance))
     {

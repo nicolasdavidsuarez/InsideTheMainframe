@@ -223,18 +223,22 @@ void AInsideTheMainframeGameMode::EndMatch(bool bVirusWon)
         GS->Multicast_OnMatchEnded(bVirusWon);
     }
 
-    // Notificar a cada PlayerController individualmente
+    int32 Count = 0;
     for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
     {
         if (AInsideTheMainframePlayerController* PC =
             Cast<AInsideTheMainframePlayerController>(It->Get()))
         {
+            Count++;
+            GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green,
+                FString::Printf(TEXT("[ENDMATCH] Enviando a PC %d: %s"),
+                    Count, *PC->GetName()));
             PC->Client_ShowEndScreen(bVirusWon);
         }
     }
 
-    UE_LOG(LogTemp, Warning, TEXT("Partida terminada. Virus ganaron: %s"),
-        bVirusWon ? TEXT("SI") : TEXT("NO"))
+    GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green,
+        FString::Printf(TEXT("[ENDMATCH] Total PCs notificados: %d"), Count));
 }
 
 AInsideTheMainframeGameState* AInsideTheMainframeGameMode::GetMainframeGameState() const

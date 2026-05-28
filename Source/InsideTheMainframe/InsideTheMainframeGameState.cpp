@@ -2,6 +2,8 @@
 
 
 #include "InsideTheMainframeGameState.h"
+
+#include "InsideTheMainframeGameMode.h"
 #include "InsideTheMainframePlayerController.h"
 #include "Net/UnrealNetwork.h"    
 #include "UI/InsideTheMainframeHUD.h"
@@ -96,18 +98,18 @@ void AInsideTheMainframeGameState::CheckAllInfected()
     if (!HasAuthority()) return;
     if (!bMatchInProgress) return;
 
-    // Recorrer todos los PlayerStates
     for (APlayerState* PS : PlayerArray)
     {
         AInsideTheMainframePlayerState* IPS =
             Cast<AInsideTheMainframePlayerState>(PS);
         if (IPS && !IPS->IsVirus())
-            return; // Todavía hay antivirus, no termina
+            return;
     }
 
-    // Todos son virus — terminar partida
-    bMatchInProgress = false;
-    bVirusWon = true;
-
-    Multicast_OnMatchEnded(true);
+    // Todos son virus — avisarle al GameMode
+    if (AInsideTheMainframeGameMode* GM =
+        Cast<AInsideTheMainframeGameMode>(GetWorld()->GetAuthGameMode()))
+    {
+        GM->EndMatch(true);
+    }
 }

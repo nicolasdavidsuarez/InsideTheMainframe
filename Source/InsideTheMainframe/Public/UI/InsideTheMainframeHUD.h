@@ -28,6 +28,7 @@ public:
 
     // Se llama cada frame — acá actualizamos el HUD con datos del GameState
     virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+    void UpdateEnergyBar();
 
     // -------------------------------------------------------------------------
     // Funciones públicas — llamadas desde PlayerController
@@ -94,6 +95,12 @@ public:
     // Barra de progreso de infección 0-1
     UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
     UProgressBar* ProgressBar_Infection;
+    
+    UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+    UProgressBar* ProgressBar_Energy;
+
+    UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+    UTextBlock* Text_Energy; 
 
     // Texto de advertencia
     UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
@@ -101,6 +108,7 @@ public:
     
     UFUNCTION(BlueprintCallable, Category = "HUD")
     void ShowInfectionWarning(bool bShow, float Progress);
+    void UpdatePlayerRole();
 
 protected:
     // Timer para ocultar la notificación de rol después de unos segundos
