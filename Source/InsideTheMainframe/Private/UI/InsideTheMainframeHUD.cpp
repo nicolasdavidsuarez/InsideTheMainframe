@@ -135,24 +135,31 @@ void UInsideTheMainframeHUD::HideRoleNotification()
         Overlay_RoleNotification->SetVisibility(ESlateVisibility::Hidden);
 }
 
-// -------------------------------------------------------------------------
-// ShowEndScreen
-// -------------------------------------------------------------------------
+
 void UInsideTheMainframeHUD::ShowEndScreen(bool bLocalPlayerWon)
 {
     if (!Overlay_EndScreen || !Text_EndResult) return;
-
-    FString ResultText = bLocalPlayerWon
-        ? TEXT("SISTEMA PROTEGIDO\nGanaste")
-        : TEXT("SISTEMA COMPROMETIDO\nPerdiste");
-
-    Text_EndResult->SetText(FText::FromString(ResultText));
-    Overlay_EndScreen->SetVisibility(ESlateVisibility::Visible);
+    
+    if (AInsideTheMainframePlayerState* PS = Cast<AInsideTheMainframePlayerState>(GetOwningPlayerState(false))) //GetMainframePlayerState())
+    {
+        FString ResultText;
+        if (PS->bIsVirus)
+        {
+            ResultText = bLocalPlayerWon
+        ? TEXT("SISTEMA CORROMPIDO-MOODLE CAIDO\nGanaste!!!")
+        : TEXT("SISTEMA SCANEADO-PROTEGIDO\nPerdiste!!!");
+        }else
+        {
+            ResultText = bLocalPlayerWon
+        ? TEXT("SISTEMA SCANEADO-PROTEGIDO\nGanaste")
+        : TEXT("SISTEMA CORROMPIDO-MOODLE CAIDO\nPerdiste");
+        }
+        Text_EndResult->SetText(FText::FromString(ResultText));
+        Overlay_EndScreen->SetVisibility(ESlateVisibility::Visible);
+    }
 }
 
-// -------------------------------------------------------------------------
-// HideEndScreen
-// -------------------------------------------------------------------------
+
 void UInsideTheMainframeHUD::HideEndScreen()
 {
     if (Overlay_EndScreen)

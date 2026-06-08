@@ -155,12 +155,8 @@ void AInsideTheMainframePlayerController::Client_ShowRoleNotification_Implementa
     }
 }
 
-// -------------------------------------------------------------------------
-// Client_ShowEndScreen
-// Se ejecuta en el cliente cuando la partida termina
-// -------------------------------------------------------------------------
-void AInsideTheMainframePlayerController::Client_ShowEndScreen_Implementation(
-    bool bVirusWon)
+
+void AInsideTheMainframePlayerController::Client_ShowEndScreen_Implementation(bool bVirusWon)
 {
     bool bIWon = false;
 
@@ -168,14 +164,6 @@ void AInsideTheMainframePlayerController::Client_ShowEndScreen_Implementation(
     {
         bIWon = (PS->IsVirus() == bVirusWon);
     }
-
-    UE_LOG(LogTemp, Warning, TEXT("[CLIENT] Partida terminada. Yo %s"),
-        bIWon ? TEXT("GANÉ") : TEXT("PERDÍ"));
-
-    UE_LOG(LogTemp, Warning, TEXT("[CLIENT] ShowEndScreen llamado. Gané=%s HUDInstance=%s"),
-    bIWon ? TEXT("SI") : TEXT("NO"),
-    HUDWidgetInstance ? TEXT("VALIDO") : TEXT("NULL"));  // ← esto nos dice todo
-
     
     if (UInsideTheMainframeHUD* HUD =
         Cast<UInsideTheMainframeHUD>(HUDWidgetInstance))
@@ -187,10 +175,7 @@ void AInsideTheMainframePlayerController::Client_ShowEndScreen_Implementation(
     SetInputMode(FInputModeUIOnly());
 }
 
-// -------------------------------------------------------------------------
-// Client_OnInfected
-// Se ejecuta en el cliente cuando este jugador fue infectado
-// -------------------------------------------------------------------------
+
 void AInsideTheMainframePlayerController::Client_OnInfected_Implementation()
 {
     
@@ -203,12 +188,10 @@ void AInsideTheMainframePlayerController::Client_OnInfected_Implementation()
     }
 }
 
-// -------------------------------------------------------------------------
-// Server_NotifyReady — el cliente le avisa al servidor que está listo
-// -------------------------------------------------------------------------
+
 bool AInsideTheMainframePlayerController::Server_NotifyReady_Validate()
 {
-    return true;   // Podés agregar lógica anti-cheat acá si querés
+    return true;   
 }
 
 void AInsideTheMainframePlayerController::Server_NotifyReady_Implementation()
@@ -216,13 +199,9 @@ void AInsideTheMainframePlayerController::Server_NotifyReady_Implementation()
     UE_LOG(LogTemp, Log, TEXT("[SERVER] Jugador listo: %s"),
         PlayerState ? *PlayerState->GetPlayerName() : TEXT("desconocido"));
 
-    // Si querés un sistema de "todos listos antes de empezar",
-    // incrementás un contador acá en el GameMode y chequeás si todos están listos
 }
 
-// -------------------------------------------------------------------------
-// GetMainframePlayerState — helper para no castear en todos lados
-// -------------------------------------------------------------------------
+
 AInsideTheMainframePlayerState* AInsideTheMainframePlayerController::GetMainframePlayerState() const
 {
     return Cast<AInsideTheMainframePlayerState>(PlayerState);
