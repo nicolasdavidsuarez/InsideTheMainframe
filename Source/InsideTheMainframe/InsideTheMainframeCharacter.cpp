@@ -18,6 +18,15 @@
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h"
 
+void AInsideTheMainframeCharacter::SetRamRef(AActor* ram)
+{
+	RamRef = ram;
+}
+void AInsideTheMainframeCharacter::ClearRamRef()
+{
+	RamRef = nullptr;
+}
+
 AInsideTheMainframeCharacter::AInsideTheMainframeCharacter()
 {
 	// Set size for collision capsule
@@ -67,8 +76,8 @@ AInsideTheMainframeCharacter::AInsideTheMainframeCharacter()
 	//energia
 	MaxEnergy             = 100.f;
 	Energy                = MaxEnergy;
-	PassiveRechargeRate   = 5.f;     
-	CapacitorRechargeAmount = 50.f;  
+	PassiveRechargeRate   = 1.0f;     
+	CapacitorRechargeAmount = 30.f;  
 	AbilityCost           = 30.f; 
 	
 	//cono de infeccion
@@ -131,6 +140,7 @@ void AInsideTheMainframeCharacter::Shooting()
 	if (!PS || !bIsAlive) return;
 
 	// Elegir clase según rol
+	//el  virus shoot solo para la memoria ram
 	TSubclassOf<AActor> ProjectileClass = PS->IsVirus() 
 		? VirusProjectileClass 
 		: AntivirusProjectileClass;
@@ -157,6 +167,14 @@ void AInsideTheMainframeCharacter::Shooting()
 
 	GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnLocation, SpawnRotation, SpawnParams);
 
+	if (RamRef)
+	{
+		FName FuncName = TEXT("RecibeDanio"); 
+		if (UFunction* Func = RamRef->FindFunction(FuncName))
+		{
+			RamRef->ProcessEvent(Func, nullptr); 
+		}
+	}
 	UE_LOG(LogTemp, Warning, TEXT("[SHOOT] %s disparó como %s"),
 		*GetName(), PS->IsVirus() ? TEXT("VIRUS") : TEXT("ANTIVIRUS"));
 }

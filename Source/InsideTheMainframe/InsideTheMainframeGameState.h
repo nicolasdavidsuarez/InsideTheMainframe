@@ -16,7 +16,9 @@ public:
 
     UPROPERTY(ReplicatedUsing = OnRep_TimeRemaining, BlueprintReadOnly, Category = "Match")
     float TimeRemaining;
-
+    
+    UPROPERTY()
+    AActor* RamRef=nullptr;
    
     UPROPERTY(Replicated, BlueprintReadOnly, Category = "Match")
     bool bMatchInProgress;
@@ -37,6 +39,16 @@ public:
     
     UFUNCTION()
     void CheckAllInfected();
+    
+    UFUNCTION(BlueprintCallable, Category = "Match")
+    void BrokedRam(AActor* ram);
+    
+    UFUNCTION(NetMulticast, Reliable)
+    void Multicast_BrokedRam(AActor* ram);
+    
+    UFUNCTION(Server, Reliable, BlueprintCallable, Category = "Match")
+    void Server_BrokedRam(AActor* ram);
+    
 
     UFUNCTION(NetMulticast, Reliable)
     void Multicast_OnMatchStarted();

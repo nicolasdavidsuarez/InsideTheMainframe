@@ -113,3 +113,27 @@ void AInsideTheMainframeGameState::CheckAllInfected()
         GM->EndMatch(true);
     }
 }
+
+void AInsideTheMainframeGameState::BrokedRam(AActor* ram)
+{
+ 
+    if (!HasAuthority()) return;
+    RamRef=ram;
+     TimeRemaining = TimeRemaining+20.0f; //le da mas tiempo  
+    Multicast_BrokedRam(ram);
+   
+}
+
+void AInsideTheMainframeGameState::Server_BrokedRam_Implementation(AActor* ram)
+{
+    BrokedRam(ram);
+}
+
+void AInsideTheMainframeGameState::Multicast_BrokedRam_Implementation(AActor* ram)
+{
+    if (!ram) return;
+    if (UFunction* Func = ram->FindFunction(TEXT("OnRamBroken")))
+    {
+        ram->ProcessEvent(Func, nullptr);
+    }
+}

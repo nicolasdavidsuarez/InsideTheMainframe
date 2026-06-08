@@ -218,6 +218,16 @@ protected:
 
     // Handle del timer de recarga pasiva
     FTimerHandle EnergyRechargeTimerHandle;
+	
+	//referencia a la ram
+	UPROPERTY(EditDefaultsOnly, Category = "Ram")
+	AActor* RamRef=nullptr;
+	
+	UFUNCTION(BlueprintCallable)
+	void SetRamRef(AActor* ram);
+	
+	UFUNCTION(BlueprintCallable)
+	void ClearRamRef();
 
 	/** Constructor */
 	AInsideTheMainframeCharacter();
