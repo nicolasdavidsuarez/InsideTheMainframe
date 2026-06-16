@@ -310,19 +310,9 @@ float AInsideTheMainframeCharacter::TakeDamage(float DamageAmount,
     return ActualDamage;
 }
 
-// -------------------------------------------------------------------------
-// SetupPlayerInputComponent — agregamos InfectAction al binding existente
-// -------------------------------------------------------------------------
-// NOTA: no reemplaces el tuyo, solo agregá esta línea dentro del if de tu
-// SetupPlayerInputComponent, después del binding de LookAction:
-//
-//   EnhancedInputComponent->BindAction(InfectAction, ETriggerEvent::Started,
-//       this, &AInsideTheMainframeCharacter::TryInfectNearby);
-//
-
-// -------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////
 // TryInfectNearby
-// -------------------------------------------------------------------------
+
 void AInsideTheMainframeCharacter::TryInfectNearby()
 {UE_LOG(LogTemp, Warning, TEXT("[INFECT] bIsVirus=%s bIsAlive=%s"),
 		bIsVirus ? TEXT("true") : TEXT("false"),
@@ -345,9 +335,9 @@ void AInsideTheMainframeCharacter::TryInfectNearby()
 	Server_TryInfect(Target);
 }
 
-// -------------------------------------------------------------------------
+/////////////////////////////////////////////////////////////////////////////////
 // FindNearbyAntivirus
-// -------------------------------------------------------------------------
+
 AInsideTheMainframeCharacter* AInsideTheMainframeCharacter::FindNearbyAntivirus() const
 {TArray<AActor*> NearbyActors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(),
@@ -382,9 +372,9 @@ AInsideTheMainframeCharacter* AInsideTheMainframeCharacter::FindNearbyAntivirus(
 	return ClosestTarget;
 }
 
-// -------------------------------------------------------------------------
+/////////////////////////////////////////////////////////////////////////////
 // Server_TryInfect
-// -------------------------------------------------------------------------
+
 bool AInsideTheMainframeCharacter::Server_TryInfect_Validate(
     AInsideTheMainframeCharacter* TargetCharacter)
 {
@@ -418,9 +408,8 @@ void AInsideTheMainframeCharacter::Server_TryInfect_Implementation(
 	
 }
 
-// -------------------------------------------------------------------------
+/////////////////////////////////////////////////////////////////////////
 // OnBecomeVirus
-// -------------------------------------------------------------------------
 void AInsideTheMainframeCharacter::OnBecomeVirus()
 {
    
@@ -433,9 +422,8 @@ void AInsideTheMainframeCharacter::OnBecomeVirus()
 	UE_LOG(LogTemp, Warning, TEXT("[CHARACTER] %s bIsVirus seteado a true"), *GetName());
 }
 
-// -------------------------------------------------------------------------
-// Die
-// -------------------------------------------------------------------------
+// Muerte
+// 
 void AInsideTheMainframeCharacter::Die()
 {
     if (!HasAuthority()) return;
@@ -447,9 +435,8 @@ void AInsideTheMainframeCharacter::Die()
     Multicast_OnDeath();
 }
 
-// -------------------------------------------------------------------------
+////////////////////
 // UpdateVisuals
-// -------------------------------------------------------------------------
 void AInsideTheMainframeCharacter::UpdateVisuals()
 {
     UMaterialInterface* Mat = bIsVirus ? VirusMaterial : AntivirusMaterial;
@@ -458,17 +445,17 @@ void AInsideTheMainframeCharacter::UpdateVisuals()
 	
 }
 
-// -------------------------------------------------------------------------
+
+///////////////////////////////////////////////
 // Multicast_PlayInfectionEffect
-// -------------------------------------------------------------------------
 void AInsideTheMainframeCharacter::Multicast_PlayInfectionEffect_Implementation()
 {
     UE_LOG(LogTemp, Warning, TEXT("[MULTICAST] Efecto de infección en %s"), *GetName());
 }
 
-// -------------------------------------------------------------------------
+
+//////////////////////////////////////////////////
 // Multicast_OnDeath
-// -------------------------------------------------------------------------
 void AInsideTheMainframeCharacter::Multicast_OnDeath_Implementation()
 {
     GetCharacterMovement()->DisableMovement();
@@ -476,9 +463,8 @@ void AInsideTheMainframeCharacter::Multicast_OnDeath_Implementation()
     UE_LOG(LogTemp, Warning, TEXT("[MULTICAST] Muerte de %s"), *GetName());
 }
 
-// -------------------------------------------------------------------------
+/////////////////////////////////////////////////////
 // RepNotifies
-// -------------------------------------------------------------------------
 void AInsideTheMainframeCharacter::OnRep_Health()
 {
     UE_LOG(LogTemp, Verbose, TEXT("[CLIENT] Health: %.0f"), Health);
@@ -505,9 +491,8 @@ void AInsideTheMainframeCharacter::OnRep_IsVirus()
 	BP_VirusChange(bIsVirus);
 }
 
-// -------------------------------------------------------------------------
+// /////////////////////////////////////////////////
 // Helpers
-// -------------------------------------------------------------------------
 AInsideTheMainframePlayerState* AInsideTheMainframeCharacter::GetMainframePlayerState() const
 {
     return GetPlayerState<AInsideTheMainframePlayerState>();
@@ -518,9 +503,8 @@ AInsideTheMainframePlayerController* AInsideTheMainframeCharacter::GetMainframeP
     return Cast<AInsideTheMainframePlayerController>(GetController());
 }
 
-// -------------------------------------------------------------------------
+//// /////////////////////////////////////////////////
 // TrySpendEnergy
-// -------------------------------------------------------------------------
 bool AInsideTheMainframeCharacter::TrySpendEnergy(float Amount)
 {
     if (!HasAuthority()) return false;
@@ -534,10 +518,10 @@ bool AInsideTheMainframeCharacter::TrySpendEnergy(float Amount)
     return true;
 }
  
-// -------------------------------------------------------------------------
+// //// /////////////////////////////////////////////////
 // RechargeFromCapacitor — llamado desde el BP del capacitor
 // como es un BP quien llama, necesitamos el Server RPC
-// -------------------------------------------------------------------------
+// 
 void AInsideTheMainframeCharacter::RechargeFromCapacitor()
 {
     // El BP llama esto en el cliente — mandamos al servidor
@@ -558,9 +542,9 @@ void AInsideTheMainframeCharacter::Server_RechargeFromCapacitor_Implementation()
         *GetName(), OldEnergy, Energy);
 }
  
-// -------------------------------------------------------------------------
+// //// /////////////////////////////////////////////////
+
 // PassiveEnergyTick — recarga lenta cada segundo
-// -------------------------------------------------------------------------
 void AInsideTheMainframeCharacter::PassiveEnergyTick()
 {
     if (!HasAuthority()) return;
@@ -570,22 +554,18 @@ void AInsideTheMainframeCharacter::PassiveEnergyTick()
     Energy = FMath::Min(MaxEnergy, Energy + PassiveRechargeRate);
 }
  
-// -------------------------------------------------------------------------
+// //// /////////////////////////////////////////////////
+
 // OnRep_Energy — el cliente recibió el nuevo valor de energía
-// -------------------------------------------------------------------------
 void AInsideTheMainframeCharacter::OnRep_Energy()
 {
-    // Actualizar la barra de energía en el HUD
-    // Cuando tengas el HUD actualizado:
-    // if (AInsideTheMainframePlayerController* PC = GetMainframePlayerController())
-    //     PC->UpdateHUDEnergy(Energy, MaxEnergy);
+   
  
     UE_LOG(LogTemp, Verbose, TEXT("[CLIENT] Energía actualizada: %.0f / %.0f"),
         Energy, MaxEnergy);
 }
-// -------------------------------------------------------------------------
+// //// /////////////////////////////////////////////////
 // ActivateCone — input del cliente, manda al servidor
-// -------------------------------------------------------------------------
 void AInsideTheMainframeCharacter::ActivateCone()
 {   // Leer rol desde PlayerState — es la fuente de verdad
 	AInsideTheMainframePlayerState* PS = GetPlayerState<AInsideTheMainframePlayerState>();
@@ -595,9 +575,8 @@ void AInsideTheMainframeCharacter::ActivateCone()
 	Server_ActivateCone();
 }
  
-// -------------------------------------------------------------------------
+// //// /////////////////////////////////////////////////
 // Server_ActivateCone
-// -------------------------------------------------------------------------
 bool AInsideTheMainframeCharacter::Server_ActivateCone_Validate()
 {
 	AInsideTheMainframePlayerState* PS = GetPlayerState<AInsideTheMainframePlayerState>();
@@ -629,6 +608,7 @@ void AInsideTheMainframeCharacter::Server_ActivateCone_Implementation()
     );
  
     // El cono dura máximo 2 segundos aunque no infecte a nadie
+	// ver si esta bien
     FTimerHandle ConeLifetimeHandle;
     GetWorldTimerManager().SetTimer(
         ConeLifetimeHandle,
@@ -650,9 +630,9 @@ void AInsideTheMainframeCharacter::Server_ActivateCone_Implementation()
     );
 }
  
-// -------------------------------------------------------------------------
+// //// /////////////////////////////////////////////////
 // ConeTickUpdate — corre cada 0.1s en el servidor mientras el cono está activo
-// -------------------------------------------------------------------------
+
 void AInsideTheMainframeCharacter::ConeTickUpdate()
 {
     if (!HasAuthority() || !bConeActive) return;
@@ -678,16 +658,7 @@ void AInsideTheMainframeCharacter::ConeTickUpdate()
     {
         if (!Target || !Target->bIsAlive || Target->bIsVirus) continue;
  
-        // Inicializar timer si es la primera vez que entra al cono
-        /*if (!InfectionTimers.Contains(Target))
-        {
-            InfectionTimers.Add(Target, 0.f);
-            // Avisar al target que está siendo infectado
-            //Target->Multicast_StartBeingInfected(true);
-        	Target->bBeingInfected = true; 
-            UE_LOG(LogTemp, Warning, TEXT("[CONE] %s entró al cono"), *Target->GetName());
-        }*/
- 
+        
     	// Cuando entra al cono
     	if (!InfectionTimers.Contains(Target))
     	{
@@ -742,9 +713,8 @@ void AInsideTheMainframeCharacter::ConeTickUpdate()
     }
 }
  
-// -------------------------------------------------------------------------
+// //// /////////////////////////////////////////////////
 // GetTargetsInCone — devuelve todos los Antivirus dentro del cono
-// -------------------------------------------------------------------------
 TArray<AInsideTheMainframeCharacter*> AInsideTheMainframeCharacter::GetTargetsInCone() const
 {
     TArray<AInsideTheMainframeCharacter*> Result;
@@ -767,9 +737,9 @@ TArray<AInsideTheMainframeCharacter*> AInsideTheMainframeCharacter::GetTargetsIn
     return Result;
 }
  
-// -------------------------------------------------------------------------
+// //// /////////////////////////////////////////////////
 // IsInCone — verifica si un target está dentro del cono
-// -------------------------------------------------------------------------
+
 bool AInsideTheMainframeCharacter::IsInCone(AInsideTheMainframeCharacter* Target) const
 {
     if (!Target) return false;
@@ -793,9 +763,9 @@ bool AInsideTheMainframeCharacter::IsInCone(AInsideTheMainframeCharacter* Target
     return AngleDeg <= (ConeAngle * 0.5f);
 }
  
-// -------------------------------------------------------------------------
+// //// /////////////////////////////////////////////////
 // CancelInfectionOnTarget — el target salió del cono
-// -------------------------------------------------------------------------
+
 void AInsideTheMainframeCharacter::CancelInfectionOnTarget(
     AInsideTheMainframeCharacter* Target)
 {
@@ -825,9 +795,8 @@ void AInsideTheMainframeCharacter::StopAim()
 	bUseControllerRotationYaw = false;
 }
 
-// -------------------------------------------------------------------------
+////// /////////////////////////////////////////////////
 // Multicast_PlayConeEffect — efecto visual del cono
-// -------------------------------------------------------------------------
 void AInsideTheMainframeCharacter::Multicast_PlayConeEffect_Implementation()
 {
     // Acá reproducís el Niagara del cono, sonido, etc.
@@ -848,13 +817,12 @@ void AInsideTheMainframeCharacter::Multicast_PlayConeEffect_Implementation()
 		{
 			if (ConeMesh)
 				ConeMesh->SetVisibility(false);
-		}, 2.f, false);
+		}, 2.0f, false);
 	}
 }
  
-// -------------------------------------------------------------------------
+
 // Multicast_StartBeingInfected — avisa al target si está siendo infectado
-// -------------------------------------------------------------------------
 void AInsideTheMainframeCharacter::Multicast_StartBeingInfected_Implementation(bool bStart)
 {
     bBeingInfected = bStart;
@@ -866,9 +834,7 @@ void AInsideTheMainframeCharacter::Multicast_StartBeingInfected_Implementation(b
         *GetName(), bStart ? TEXT("SI") : TEXT("NO"));
 }
  
-// -------------------------------------------------------------------------
 // OnRep_bBeingInfected — el cliente recibe el estado de infección
-// -------------------------------------------------------------------------
 void AInsideTheMainframeCharacter::OnRep_bBeingInfected()
 {
     // Si este es el jugador local, mostrar/ocultar el indicador de infección en el HUD
@@ -885,10 +851,10 @@ void AInsideTheMainframeCharacter::OnRep_bBeingInfected()
             *GetName(), bBeingInfected ? TEXT("SI") : TEXT("NO"));
     }
 }
+
  
-// -------------------------------------------------------------------------
 // OnRep_InfectionProgress — actualizar barra de progreso en el HUD
-// -------------------------------------------------------------------------
+// 
 void AInsideTheMainframeCharacter::OnRep_InfectionProgress()
 {
     if (IsLocallyControlled())

@@ -17,67 +17,47 @@ class INSIDETHEMAINFRAME_API AInsideTheMainframePlayerController : public APlaye
 public:
     AInsideTheMainframePlayerController();
 
-    // -------------------------------------------------------------------------
-    // Overrides
-    // -------------------------------------------------------------------------
-
-    // Llamado cuando el controller toma posesión de un pawn
+   
     virtual void OnPossess(APawn* InPawn) override;
 
-    // Llamado en el cliente cuando el controller está listo
     virtual void BeginPlay() override;
 
-    // Llamado en el cliente cuando recibe/actualiza su PlayerState
     virtual void OnRep_PlayerState() override;
 
-    // -------------------------------------------------------------------------
-    // Client RPCs — el servidor le habla a este cliente específico
-    // -------------------------------------------------------------------------
-
-    // El servidor le dice al cliente que muestre su rol al inicio
+   
     UFUNCTION(Client, Reliable)
     void Client_ShowRoleNotification(EPlayerRole NewRole);
 
-    // El servidor le dice al cliente que muestre la pantalla de fin de partida
     UFUNCTION(Client, Reliable)
     void Client_ShowEndScreen(bool bVirusWon);
 
-    // El servidor le avisa que fue infectado (para efectos locales)
     UFUNCTION(Client, Reliable)
     void Client_OnInfected();
 
-    // -------------------------------------------------------------------------
-    // Server RPCs — el cliente le habla al servidor
-    // -------------------------------------------------------------------------
-
-    // El cliente le avisa al servidor que está listo para jugar
+  
     UFUNCTION(Server, Reliable, WithValidation)
     void Server_NotifyReady();
+    
+    UFUNCTION(Client, Reliable)
+    void Client_ShowRePlay();
+    
+    UFUNCTION(Server,Reliable)
+    void Server_RequestRestartLevel();
 
-    // -------------------------------------------------------------------------
-    // Funciones de HUD (corren en el cliente)
-    // -------------------------------------------------------------------------
+
     EPlayerRole PendingRole;
     bool bHasPendingRole = false;
     
-    // Crea e inicializa el widget HUD en pantalla
     UFUNCTION(BlueprintCallable, Category = "HUD")
     void CreateHUD();
 
-    // Actualiza el timer en el HUD — llamado desde OnRep_TimeRemaining del GameState
     UFUNCTION(BlueprintCallable, Category = "HUD")
     void UpdateHUDTimer(float TimeRemaining);
 
-    // Actualiza los contadores de Virus/Antivirus en el HUD
     UFUNCTION(BlueprintCallable, Category = "HUD")
     void UpdateHUDCounters(int32 VirusCount, int32 AntivirusCount);
 
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
-
-    // Devuelve el PlayerState casteado — conveniente para no castear en todos lados
-    UFUNCTION(BlueprintPure, Category = "Player")
+       UFUNCTION(BlueprintPure, Category = "Player")
     AInsideTheMainframePlayerState* GetMainframePlayerState() const;
 
 protected:

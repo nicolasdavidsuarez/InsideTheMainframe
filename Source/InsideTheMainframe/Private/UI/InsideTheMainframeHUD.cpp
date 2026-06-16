@@ -5,16 +5,47 @@
 
 #include "InsideTheMainframeCharacter.h"
 #include "InsideTheMainframeGameState.h"
+#include "InsideTheMainframePlayerController.h"
 #include "InsideTheMainframePlayerState.h"
 #include "Components/TextBlock.h"
 #include "Components/Overlay.h"
 #include "Components/Image.h"
 #include "Components/ProgressBar.h"
 #include "TimerManager.h"
+#include "AI/NavigationSystemBase.h"
+#include "Components/Button.h"
+#include "Kismet/KismetSystemLibrary.h"
 
-// -------------------------------------------------------------------------
-// NativeConstruct — el widget está listo en pantalla
-// -------------------------------------------------------------------------
+
+void UInsideTheMainframeHUD::RestartGame()
+{
+    APlayerController* PC = GetOwningPlayer();  
+    if (!PC) return;
+
+    AInsideTheMainframePlayerController* ITMController = 
+        Cast<AInsideTheMainframePlayerController>(PC);
+    if (ITMController)
+    {
+        ITMController->Server_RequestRestartLevel();
+    }
+    //Game State Restart
+}
+
+void UInsideTheMainframeHUD::ExitGame()
+{
+    APlayerController* PC = GetOwningPlayer();
+    if (!PC) return;
+
+    // Salir del juego es siempre local
+    UKismetSystemLibrary::QuitGame(
+        GetWorld(),
+        PC,
+        EQuitPreference::Quit,
+        false // bIgnorePlatformRestrictions
+    );
+    //GameMode? ExitGame
+}
+
 void UInsideTheMainframeHUD::NativeConstruct()
 {
     Super::NativeConstruct();
@@ -26,13 +57,14 @@ void UInsideTheMainframeHUD::NativeConstruct()
     // Ocultar la notificación de rol al inicio
     if (Overlay_RoleNotification)
         Overlay_RoleNotification->SetVisibility(ESlateVisibility::Hidden);
+    
+    Button_RepeatPlay->OnClicked.AddDynamic(this, &ThisClass::RestartGame);
+    Button_Salir->OnClicked.AddDynamic(this, &ThisClass::ExitGame);
 
     UE_LOG(LogTemp, Log, TEXT("[HUD] Widget inicializado"));
 }
 
-// -------------------------------------------------------------------------
-// NativeTick — actualizar HUD cada frame con datos del GameState
-// -------------------------------------------------------------------------
+
 void UInsideTheMainframeHUD::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
     Super::NativeTick(MyGeometry, InDeltaTime);
@@ -77,9 +109,7 @@ void UInsideTheMainframeHUD::UpdateEnergyBar()
         Text_Energy->SetText(FText::FromString(
             FString::Printf(TEXT("%.0f / %.0f"), Character->Energy, Character->MaxEnergy)));
 }
-// -------------------------------------------------------------------------
-// UpdateTimer
-// -------------------------------------------------------------------------
+
 void UInsideTheMainframeHUD::UpdateTimer(float TimeRemaining)
 {
     if (Text_Timer)
@@ -87,9 +117,7 @@ void UInsideTheMainframeHUD::UpdateTimer(float TimeRemaining)
        TEXT("SCAN C: Disk... Remainig time:  ") + FormatTime(TimeRemaining).ToString()));
 }
 
-// -------------------------------------------------------------------------
-// UpdateCounters
-// -------------------------------------------------------------------------
+
 void UInsideTheMainframeHUD::UpdateCounters(int32 VirusCount, int32 AntivirusCount)
 {
     if (Text_VirusCount)
@@ -101,9 +129,7 @@ void UInsideTheMainframeHUD::UpdateCounters(int32 VirusCount, int32 AntivirusCou
             FString::Printf(TEXT("Antivirus: %d"), AntivirusCount)));
 }
 
-// -------------------------------------------------------------------------
-// ShowRoleNotification — muestra por 3 segundos quién sos
-// -------------------------------------------------------------------------
+
 void UInsideTheMainframeHUD::ShowRoleNotification(EPlayerRole NewRole)
 {
     if (!Overlay_RoleNotification || !Text_RoleNotification) return;
@@ -116,7 +142,7 @@ void UInsideTheMainframeHUD::ShowRoleNotification(EPlayerRole NewRole)
     Text_RoleNotification->SetText(FText::FromString(RoleText));
     Overlay_RoleNotification->SetVisibility(ESlateVisibility::Visible);
 
-    // Ocultar después de 3 segundos
+    
     GetWorld()->GetTimerManager().SetTimer(
         RoleNotificationTimer,
         this,
@@ -126,9 +152,7 @@ void UInsideTheMainframeHUD::ShowRoleNotification(EPlayerRole NewRole)
     );
 }
 
-// -------------------------------------------------------------------------
-// HideRoleNotification
-// -------------------------------------------------------------------------
+
 void UInsideTheMainframeHUD::HideRoleNotification()
 {
     if (Overlay_RoleNotification)
@@ -155,6 +179,8 @@ void UInsideTheMainframeHUD::ShowEndScreen(bool bLocalPlayerWon)
         : TEXT("SISTEMA CORROMPIDO-MOODLE CAIDO\nPerdiste");
         }
         Text_EndResult->SetText(FText::FromString(ResultText));
+        Overlay_RoleNotification->SetVisibility(ESlateVisibility::Hidden);
+        Overlay_InfectionWarning->SetVisibility(ESlateVisibility::Hidden);
         Overlay_EndScreen->SetVisibility(ESlateVisibility::Visible);
     }
 }
@@ -166,9 +192,12 @@ void UInsideTheMainframeHUD::HideEndScreen()
         Overlay_EndScreen->SetVisibility(ESlateVisibility::Hidden);
 }
 
-// -------------------------------------------------------------------------
-// FormatTime — convierte segundos a MM:SS
-// -------------------------------------------------------------------------
+void UInsideTheMainframeHUD::ShowRepeatGame()
+{
+    if (Overlay_RePlay)
+        Overlay_RePlay->SetVisibility(ESlateVisibility::Visible);
+}
+
 FText UInsideTheMainframeHUD::FormatTime(float Seconds) const
 {
     int32 TotalSeconds = FMath::Max(0, FMath::FloorToInt(Seconds));

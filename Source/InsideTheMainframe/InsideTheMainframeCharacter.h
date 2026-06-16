@@ -65,7 +65,6 @@ protected:
 	UInputAction* ShotAction;
 	
 
-	// En la sección protected:
 	UPROPERTY(VisibleAnywhere, Category = "Effects")
 	UNiagaraComponent* ConeEffectComponent;
 
@@ -79,9 +78,7 @@ protected:
 	UStaticMesh* ConeMeshAsset;
 
 public:
-    // -------------------------------------------------------------------------
-    // Energía — replicada para que el HUD de cada cliente muestre su propia barra
-    // -------------------------------------------------------------------------
+    
 
     UPROPERTY(ReplicatedUsing = OnRep_Energy, BlueprintReadOnly, Category = "Energy")
     float Energy;
@@ -114,32 +111,20 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	TSubclassOf<AActor> AntivirusProjectileClass;
 
-	// Punto de spawn del proyectil — un socket o un componente en el mesh
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	FName ProjectileSpawnSocket = TEXT("ProjectileSpawn");
 	
-	public:
-    // -------------------------------------------------------------------------
-    // Configuración del cono — editables desde el BP
-    // -------------------------------------------------------------------------
- 
-    // Ángulo del cono en grados (60 = 30 grados a cada lado)
+	
     UPROPERTY(EditDefaultsOnly, Category = "Infection|Cone")
     float ConeAngle;
  
-    // Distancia máxima del cono
     UPROPERTY(EditDefaultsOnly, Category = "Infection|Cone")
     float ConeRange;
  
-    // Tiempo que tiene que estar dentro del cono para infectarse
     UPROPERTY(EditDefaultsOnly, Category = "Infection|Cone")
     float InfectionTime;
  
-    // -------------------------------------------------------------------------
-    // Estado de infección por cono — replicado para el HUD del Antivirus
-    // -------------------------------------------------------------------------
- 
-    // Si este jugador está siendo infectado actualmente
+    
     UPROPERTY(ReplicatedUsing = OnRep_bBeingInfected, BlueprintReadOnly, Category = "Infection|Cone")
     bool bBeingInfected;
  
@@ -147,9 +132,6 @@ public:
     UPROPERTY(ReplicatedUsing = OnRep_InfectionProgress, BlueprintReadOnly, Category = "Infection|Cone")
     float InfectionProgress;
  
-    // -------------------------------------------------------------------------
-    // Funciones del cono
-    // -
     // Server RPC — el cliente pide activar el cono
     UFUNCTION(Server, Reliable, WithValidation)
     void Server_ActivateCone();
@@ -163,11 +145,7 @@ public:
     void Multicast_StartBeingInfected(bool bStart);
  
 protected:
-    // -------------------------------------------------------------------------
-    // Estado interno del cono (solo servidor)
-    // -------------------------------------------------------------------------
- 
-    // Mapa de target → tiempo acumulado de infección
+    
     // Usamos TMap para trackear múltiples targets a la vez
     TMap<AInsideTheMainframeCharacter*, float> InfectionTimers;
  
@@ -177,10 +155,7 @@ protected:
     // Si el cono está activo actualmente
     bool bConeActive;
  
-    // -------------------------------------------------------------------------
-    // Lógica interna
-    // -------------------------------------------------------------------------
- 
+  
     // Activa el cono — llama al Server RPC
     void ActivateCone();
  
@@ -289,11 +264,8 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_IsVirus, BlueprintReadOnly, Category = "Role")
 	bool bIsVirus;
 	
-	public:
-    // -------------------------------------------------------------------------
-    // Configuración
-    // -------------------------------------------------------------------------
-    UPROPERTY(EditDefaultsOnly, Category = "Health")
+	/////////////////////////////////////////////////////////////////////////////////////
+	UPROPERTY(EditDefaultsOnly, Category = "Health")
     float MaxHealth;
 
     UPROPERTY(EditDefaultsOnly, Category = "Infection")
@@ -308,9 +280,8 @@ public:
     UPROPERTY(EditDefaultsOnly, Category = "Visual")
     UMaterialInterface* AntivirusMaterial;
 
-    // -------------------------------------------------------------------------
-    // RPCs
-    // -------------------------------------------------------------------------
+/////////////////////////////////////////////////////////////////////////////////////
+	// RPCs
     UFUNCTION(Server, Reliable, WithValidation)
     void Server_TryInfect(AInsideTheMainframeCharacter* TargetCharacter);
 
@@ -335,11 +306,9 @@ public:
     AInsideTheMainframePlayerController* GetMainframePlayerController() const;
 
     void OnBecomeVirus();
-
-    // -------------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////
     // Replicación
-    // -------------------------------------------------------------------------
-    virtual void GetLifetimeReplicatedProps(
+     virtual void GetLifetimeReplicatedProps(
         TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:

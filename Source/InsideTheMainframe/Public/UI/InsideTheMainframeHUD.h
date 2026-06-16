@@ -6,6 +6,7 @@
 #include "InsideTheMainframePlayerState.h"
 #include "InsideTheMainframeHUD.generated.h"
 
+class UButton;
 // Forward declarations
 class UTextBlock;
 class UProgressBar;
@@ -22,7 +23,11 @@ public:
     // -------------------------------------------------------------------------
     // Lifecycle
     // -------------------------------------------------------------------------
-
+    UFUNCTION(BlueprintCallable, Category = "HUD")
+    void RestartGame();
+    
+    UFUNCTION(BlueprintCallable, Category = "HUD")
+    void ExitGame();
     // Se llama cuando el widget es creado e inicializado
     virtual void NativeConstruct() override;
 
@@ -53,13 +58,26 @@ public:
     // Oculta la pantalla de fin de partida
     UFUNCTION(BlueprintCallable, Category = "HUD")
     void HideEndScreen();
+    
+    
+    
+    
 
     // -------------------------------------------------------------------------
     // Bindings con el widget UMG
     // Los nombres tienen que coincidir EXACTAMENTE con los widgets en el editor
     // -------------------------------------------------------------------------
 
-    // Timer
+    //Ventana cuando termina el juego ya que duran poco tiempo las partidas
+    UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+    TObjectPtr<UButton> Button_RepeatPlay;
+    
+    UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+    TObjectPtr<UButton> Button_Salir;
+    
+    UFUNCTION(BlueprintCallable, Category = "HUD")
+    void ShowRepeatGame();
+    
     UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
     UTextBlock* Text_Timer;
 
@@ -77,6 +95,10 @@ public:
     // Notificación de rol al inicio (overlay que se oculta después)
     UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
     UOverlay* Overlay_RoleNotification;
+    
+    // (overlay Jugar de nuevo)
+    UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+    UOverlay* Overlay_RePlay;
 
     UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
     UTextBlock* Text_RoleNotification;
@@ -102,7 +124,7 @@ public:
     UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
     UTextBlock* Text_Energy; 
 
-    // Texto de advertencia
+    // Texto de advertencia "Estas siendo infectado!!!"
     UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
     UTextBlock* Text_InfectionWarning;
     
@@ -111,13 +133,10 @@ public:
     void UpdatePlayerRole();
 
 protected:
-    // Timer para ocultar la notificación de rol después de unos segundos
     FTimerHandle RoleNotificationTimer;
 
-    // Oculta la notificación de rol — llamado por el timer
     void HideRoleNotification();
 
-    // Formatea segundos a MM:SS para mostrar en pantalla
     FText FormatTime(float Seconds) const;
     
     

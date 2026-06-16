@@ -9,9 +9,7 @@
 #include "UI/InsideTheMainframeHUD.h"
 #include "GameFramework/PlayerState.h"
 
-// -------------------------------------------------------------------------
-// Constructor
-// -------------------------------------------------------------------------
+
 AInsideTheMainframeGameState::AInsideTheMainframeGameState()
 {
     TimeRemaining    = 0.f;
@@ -37,15 +35,7 @@ void AInsideTheMainframeGameState::GetLifetimeReplicatedProps(
 void AInsideTheMainframeGameState::OnRep_TimeRemaining()
 {
     UE_LOG(LogTemp, Verbose, TEXT("[CLIENT] TimeRemaining actualizado: %.0f"), TimeRemaining);
-
-
-/*     if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
-     {
-         if (AInsideTheMainframeHUD* HUD = PC->GetHUD<AInsideTheMainframeHUD>())
-         {
-             HUD->UpdateTimer(TimeRemaining);
-         }
-     }*/
+    
 }
 
 
@@ -106,7 +96,6 @@ void AInsideTheMainframeGameState::CheckAllInfected()
             return;
     }
 
-    // Todos son virus — avisarle al GameMode
     if (AInsideTheMainframeGameMode* GM =
         Cast<AInsideTheMainframeGameMode>(GetWorld()->GetAuthGameMode()))
     {

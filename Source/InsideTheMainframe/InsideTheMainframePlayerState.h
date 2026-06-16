@@ -30,59 +30,36 @@ class INSIDETHEMAINFRAME_API AInsideTheMainframePlayerState : public APlayerStat
 public:
     AInsideTheMainframePlayerState();
 
-    // -------------------------------------------------------------------------
-    // Variables replicadas
-    // -------------------------------------------------------------------------
+   
 
-    // Rol del jugador — RepNotify para actualizar el HUD en el cliente
     UPROPERTY(ReplicatedUsing = OnRep_PlayerRole, BlueprintReadOnly, Category = "Player")
     EPlayerRole PlayerRole;
 
-    // Estado de vida — RepNotify para activar efectos de muerte/respawn
     UPROPERTY(ReplicatedUsing = OnRep_PlayerStatus, BlueprintReadOnly, Category = "Player")
     EPlayerStatus PlayerStatus;
 
-    // Puntaje individual (cuántos jugadores infectó, si es Virus)
     UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player")
     int32 InfectionScore;
     
 
-    // Alias bool para compatibilidad con el GameMode — derivado de PlayerRole
-    // No se replica por separado, se deduce de PlayerRole
+    
     UPROPERTY(BlueprintReadOnly, Category = "Player")
     bool bIsVirus;
 
-    // -------------------------------------------------------------------------
-    // RPCs
-    // -------------------------------------------------------------------------
-
-    // Client RPC: el servidor le avisa al cliente específico cuál es su rol
-    // Solo se ejecuta en el cliente dueño del PlayerController
-    // Satisface el requisito de "al menos 1 Client RPC"
+    
     UFUNCTION(Client, Reliable)
     void Client_NotifyRole(EPlayerRole NewRole);
 
-    // Server RPC: el cliente le pide al servidor que registre una infección
-    // Satisface el requisito de "al menos 1 Server RPC"
+    
     UFUNCTION(Server, Reliable, WithValidation)
     void Server_RequestInfectPlayer(AInsideTheMainframePlayerState* TargetPlayer);
 
-    // -------------------------------------------------------------------------
-    // Funciones de gameplay (llamadas solo desde el servidor)
-    // -------------------------------------------------------------------------
-
-    // Convierte este jugador en Virus — llamado desde GameMode o Character
+   
     void SetAsVirus();
 
-    // Registra una muerte/eliminación de este jugador
     void SetAsDead();
 
-    // Suma un punto al score de infección
     void AddInfectionPoint();
-
-    // -------------------------------------------------------------------------
-    // Getters convenientes para el HUD
-    // -------------------------------------------------------------------------
 
     UFUNCTION(BlueprintPure, Category = "Player")
     bool IsVirus() const { return PlayerRole == EPlayerRole::Virus; }
@@ -90,18 +67,15 @@ public:
     UFUNCTION(BlueprintPure, Category = "Player")
     bool IsAlive() const { return PlayerStatus == EPlayerStatus::Alive; }
 
-    // -------------------------------------------------------------------------
-    // Replicación
-    // -------------------------------------------------------------------------
-    virtual void GetLifetimeReplicatedProps(
+      virtual void GetLifetimeReplicatedProps(
         TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
-    // RepNotify: se ejecuta en el cliente cuando PlayerRole cambia
+    // RepNotify se ejecuta en el cliente cuando PlayerRole cambia
     UFUNCTION()
     void OnRep_PlayerRole();
 
-    // RepNotify: se ejecuta en el cliente cuando PlayerStatus cambia
+    // RepNotify se ejecuta en el cliente cuando PlayerStatus cambia
     UFUNCTION()
     void OnRep_PlayerStatus();
 };

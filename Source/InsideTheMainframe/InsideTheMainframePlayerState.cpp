@@ -11,9 +11,7 @@
 #include "Net/UnrealNetwork.h"
 #include "GameFramework/GameStateBase.h"
 
-// -------------------------------------------------------------------------
-// Constructor
-// -------------------------------------------------------------------------
+
 AInsideTheMainframePlayerState::AInsideTheMainframePlayerState()
 {
     PlayerRole    = EPlayerRole::Antivirus;
@@ -22,9 +20,7 @@ AInsideTheMainframePlayerState::AInsideTheMainframePlayerState()
     bIsVirus      = false;
 }
 
-// -------------------------------------------------------------------------
-// GetLifetimeReplicatedProps
-// -------------------------------------------------------------------------
+
 void AInsideTheMainframePlayerState::GetLifetimeReplicatedProps(
     TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -35,10 +31,7 @@ void AInsideTheMainframePlayerState::GetLifetimeReplicatedProps(
     DOREPLIFETIME(AInsideTheMainframePlayerState, InfectionScore);
 }
 
-// -------------------------------------------------------------------------
-// SetAsVirus
-// Solo llamar desde el servidor (GameMode o Character con HasAuthority)
-// -------------------------------------------------------------------------
+
 void AInsideTheMainframePlayerState::SetAsVirus()
 {
     if (!HasAuthority()) return;
@@ -97,9 +90,7 @@ void AInsideTheMainframePlayerState::SetAsVirus()
     }
 }
 
-// -------------------------------------------------------------------------
-// SetAsDead
-// -------------------------------------------------------------------------
+
 void AInsideTheMainframePlayerState::SetAsDead()
 {
     if (!HasAuthority()) return;
@@ -109,9 +100,7 @@ void AInsideTheMainframePlayerState::SetAsDead()
     UE_LOG(LogTemp, Warning, TEXT("[SERVER] %s murió"), *GetPlayerName());
 }
 
-// -------------------------------------------------------------------------
-// AddInfectionPoint
-// -------------------------------------------------------------------------
+
 void AInsideTheMainframePlayerState::AddInfectionPoint()
 {
     if (!HasAuthority()) return;
@@ -122,9 +111,7 @@ void AInsideTheMainframePlayerState::AddInfectionPoint()
         *GetPlayerName(), InfectionScore);
 }
 
-// -------------------------------------------------------------------------
-// Client_NotifyRole — se ejecuta en el cliente dueño
-// -------------------------------------------------------------------------
+
 void AInsideTheMainframePlayerState::Client_NotifyRole_Implementation(
     EPlayerRole NewRole)
 {
@@ -138,10 +125,7 @@ void AInsideTheMainframePlayerState::Client_NotifyRole_Implementation(
     }
 }
 
-// -------------------------------------------------------------------------
-// Server_RequestInfectPlayer — el cliente le pide al servidor infectar a alguien
-// Ejemplo: el Character detecta el overlap y llama este RPC
-// -------------------------------------------------------------------------
+
 bool AInsideTheMainframePlayerState::Server_RequestInfectPlayer_Validate(
     AInsideTheMainframePlayerState* TargetPlayer)
 {
@@ -175,9 +159,7 @@ void AInsideTheMainframePlayerState::Server_RequestInfectPlayer_Implementation(
         *GetPlayerName(), *TargetPlayer->GetPlayerName());
 }
 
-// -------------------------------------------------------------------------
-// OnRep_PlayerRole — se ejecuta en el cliente cuando el rol cambia
-// -------------------------------------------------------------------------
+
 void AInsideTheMainframePlayerState::OnRep_PlayerRole()
 {
     // Sincronizar el alias bool con el enum
@@ -190,9 +172,7 @@ void AInsideTheMainframePlayerState::OnRep_PlayerRole()
     // Acá podés cambiar el material del personaje, mostrar un ícono en el HUD, etc.
 }
 
-// -------------------------------------------------------------------------
-// OnRep_PlayerStatus — se ejecuta en el cliente cuando el estado cambia
-// -------------------------------------------------------------------------
+
 void AInsideTheMainframePlayerState::OnRep_PlayerStatus()
 {
     UE_LOG(LogTemp, Warning, TEXT("[CLIENT] Estado actualizado para %s: %s"),

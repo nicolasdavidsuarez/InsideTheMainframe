@@ -25,14 +25,28 @@ AInsideTheMainframeGameMode::AInsideTheMainframeGameMode()
 void AInsideTheMainframeGameMode::BeginPlay()
 {
     Super::BeginPlay();
+   
+
+    bMatchStarted = false;
+    if (AInsideTheMainframeGameState* GS = GetMainframeGameState())
+    {
+        GS->bMatchInProgress = false;
+        GS->bVirusWon        = false;
+        GS->TimeRemaining    = 0.f;
+        GS->VirusCount       = 0;
+        GS->AntivirusCount   = 0;
+    } 
 }
 
 
 void AInsideTheMainframeGameMode::PostLogin(APlayerController* NewPlayer)
 {
     Super::PostLogin(NewPlayer);   
-    UE_LOG(LogTemp, Log, TEXT("PostLogin: jugador conectado. Total: %d"), GetNumPlayers());
-    TryStartMatch();
+   
+    // Delay para asegurarse que ambos PostLogin llegaron antes de iniciar
+    FTimerHandle TryStartHandle;
+    GetWorldTimerManager().SetTimer(TryStartHandle, this,
+        &AInsideTheMainframeGameMode::TryStartMatch, 0.5f, false);
 }
 
 
@@ -49,10 +63,7 @@ void AInsideTheMainframeGameMode::TryStartMatch()
 {
     if (bMatchStarted) return;
     
-    /*AGameStateBase* GS = GetGameState<AGameStateBase>();
-    GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red,
-        FString::Printf(TEXT("PlayerArray.Num() = %d / GetNumPlayers() = %d"),
-            GS ? GS->PlayerArray.Num() : -1, GetNumPlayers()));*/
+    
     
     if (GetNumPlayers() < MinPlayersToStart) return;
 
@@ -62,24 +73,7 @@ void AInsideTheMainframeGameMode::TryStartMatch()
     GetWorldTimerManager().SetTimer(StartDelayHandle, this,
         &AInsideTheMainframeGameMode::StartMatchDelayed, 1.f, false);
     
-    /*
-    if (AInsideTheMainframeGameState* GS = GetMainframeGameState())
-    {
-        GS->TimeRemaining    = MatchDuration;
-        GS->bMatchInProgress = true;
-        GS->AntivirusCount = GetNumPlayers();
-        GS->VirusCount     = 0;
-    }
     
-    
-    SelectInitialVirus();
-    UpdatePlayerCounts();  // ← DESPUÉS de asignar roles
-
-    GetWorldTimerManager().SetTimer(
-        MatchTimerHandle, this,
-        &AInsideTheMainframeGameMode::OnMatchTick,
-        1.f, true);
-        */
 }
 
 void AInsideTheMainframeGameMode::StartMatchDelayed()
@@ -234,6 +228,7 @@ void AInsideTheMainframeGameMode::EndMatch(bool bVirusWon)
                 FString::Printf(TEXT("[ENDMATCH] Enviando a PC %d: %s"),
                     Count, *PC->GetName()));
             PC->Client_ShowEndScreen(bVirusWon);
+            PC->Client_ShowRePlay();
         }
     }
 

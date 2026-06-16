@@ -7,26 +7,26 @@ void ULANConnexion::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
 
-    // Input y cursor en modo UI
-    FInputModeUIOnly InputMode;
+ 
+     FInputModeUIOnly InputMode;
     GetOwningPlayer()->SetInputMode(InputMode);
     GetOwningPlayer()->SetShowMouseCursor(true);
 
-    // Panel principal al arrancar
+    
     Switcher_Panels->SetActiveWidgetIndex(0);
     SetStatus(TEXT(""));
 
-    // IP por defecto para testear en la misma PC
+    
     EditableTextBox_Ip->SetText(FText::FromString(TEXT("127.0.0.1")));
 
-    // Vincular botones
-    Button_Create ->OnClicked.AddDynamic(this, &ThisClass::OnButtonCreateClicked);
-    Button_Join   ->OnClicked.AddDynamic(this, &ThisClass::OnButtonJoinClicked);
+   
+    Button_Create->OnClicked.AddDynamic(this, &ThisClass::OnButtonCreateClicked);
+    Button_Join->OnClicked.AddDynamic(this, &ThisClass::OnButtonJoinClicked);
     Button_Confirm->OnClicked.AddDynamic(this, &ThisClass::OnButtonConfirmClicked);
-    Button_Back   ->OnClicked.AddDynamic(this, &ThisClass::OnButtonBackClicked);
+    Button_Back->OnClicked.AddDynamic(this, &ThisClass::OnButtonBackClicked);
 }
 
-// ─── Panel principal ──────────────────────────────────────────────────────────
+
 
 void ULANConnexion::OnButtonCreateClicked()
 {
@@ -47,7 +47,7 @@ void ULANConnexion::OnButtonJoinClicked()
     SetStatus(TEXT("Ingresá la IP del host."));
 }
 
-// ─── Panel "Unirse" ───────────────────────────────────────────────────────────
+
 
 void ULANConnexion::OnButtonConfirmClicked()
 {
@@ -75,7 +75,7 @@ void ULANConnexion::OnButtonBackClicked()
     SetStatus(TEXT(""));
 }
 
-// ─── Helper ───────────────────────────────────────────────────────────────────
+
 
 void ULANConnexion::SetStatus(const FString& Message)
 {

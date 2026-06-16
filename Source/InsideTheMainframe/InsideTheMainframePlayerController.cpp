@@ -4,9 +4,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Public/UI/InsideTheMainframeHUD.h"
 
-// -------------------------------------------------------------------------
-// Constructor
-// -------------------------------------------------------------------------
+
 AInsideTheMainframePlayerController::AInsideTheMainframePlayerController()
 {
     HUDWidgetClass    = nullptr;
@@ -14,25 +12,23 @@ AInsideTheMainframePlayerController::AInsideTheMainframePlayerController()
     bHUDCreated       = false;
 }
 
-// -------------------------------------------------------------------------
-// BeginPlay — solo corre en el cliente dueño de este controller
-// -------------------------------------------------------------------------
+
 void AInsideTheMainframePlayerController::BeginPlay()
 {
     Super::BeginPlay();
 
     // IsLocalController() es true solo en el cliente dueño
     // Nunca crear HUD en el servidor ni en otros clientes
+    FInputModeGameOnly InputMode;
+    SetInputMode(InputMode);
+    SetShowMouseCursor(false);
     if (IsLocalController())
     {
         CreateHUD();
     }
 }
 
-// -------------------------------------------------------------------------
-// OnPossess — el controller tomó control de un pawn
-// Solo corre en el servidor
-// -------------------------------------------------------------------------
+
 void AInsideTheMainframePlayerController::OnPossess(APawn* InPawn)
 {
     Super::OnPossess(InPawn);
@@ -40,11 +36,7 @@ void AInsideTheMainframePlayerController::OnPossess(APawn* InPawn)
     UE_LOG(LogTemp, Log, TEXT("[SERVER] PlayerController poseyó un pawn"));
 }
 
-// -------------------------------------------------------------------------
-// OnRep_PlayerState
-// Se llama en el cliente cuando el PlayerState llega replicado
-// Es el momento más seguro para leer datos del PlayerState en el cliente
-// -------------------------------------------------------------------------
+
 void AInsideTheMainframePlayerController::OnRep_PlayerState()
 {
     Super::OnRep_PlayerState();
@@ -60,10 +52,30 @@ void AInsideTheMainframePlayerController::OnRep_PlayerState()
     }
 }
 
-// -------------------------------------------------------------------------
-// CreateHUD — instancia el widget y lo agrega a la pantalla
-// Solo corre en el cliente (verificado antes de llamar)
-// -------------------------------------------------------------------------
+
+void AInsideTheMainframePlayerController::Client_ShowRePlay_Implementation()
+{
+    if (UInsideTheMainframeHUD* HUD = 
+       Cast<UInsideTheMainframeHUD>(HUDWidgetInstance))
+    {
+        HUD->ShowRepeatGame();
+    }
+}
+
+void AInsideTheMainframePlayerController::Server_RequestRestartLevel_Implementation()
+{
+    UE_LOG(LogTemp, Warning, TEXT("Server_RequestRestartLevel_Implementation"));
+
+    UWorld* World = GetWorld();
+    if (World)
+    {
+        FString CurrentMap = World->GetMapName();
+        CurrentMap.RemoveFromStart(World->StreamingLevelsPrefix);
+        World->ServerTravel(CurrentMap + "?listen", false);
+    }
+
+}
+
 void AInsideTheMainframePlayerController::CreateHUD()
 {
     if (bHUDCreated) return;
@@ -100,26 +112,16 @@ void AInsideTheMainframePlayerController::CreateHUD()
     }
 }
 
-// -------------------------------------------------------------------------
-// UpdateHUDTimer
-// -------------------------------------------------------------------------
+
 void AInsideTheMainframePlayerController::UpdateHUDTimer(float TimeRemaining)
 {
     if (!IsLocalController()) return;
 
-    // Cuando tengas el widget específico, casteás HUDWidgetInstance
-    // y llamás a la función correspondiente:
-    // if (UInsideTheMainframeHUD* HUD = Cast<UInsideTheMainframeHUD>(HUDWidgetInstance))
-    // {
-    //     HUD->SetTimerValue(TimeRemaining);
-    // }
+   
 
     UE_LOG(LogTemp, Verbose, TEXT("[CLIENT] HUD Timer: %.0f"), TimeRemaining);
 }
 
-// -------------------------------------------------------------------------
-// UpdateHUDCounters
-// -------------------------------------------------------------------------
 void AInsideTheMainframePlayerController::UpdateHUDCounters(
     int32 VirusCount, int32 AntivirusCount)
 {
@@ -129,10 +131,6 @@ void AInsideTheMainframePlayerController::UpdateHUDCounters(
         VirusCount, AntivirusCount);
 }
 
-// -------------------------------------------------------------------------
-// Client_ShowRoleNotification
-// Se ejecuta en el cliente dueño cuando el servidor le asigna un rol
-// -------------------------------------------------------------------------
 
 void AInsideTheMainframePlayerController::Client_ShowRoleNotification_Implementation(
     EPlayerRole NewRole)
