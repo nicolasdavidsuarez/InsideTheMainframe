@@ -170,6 +170,7 @@ void AInsideTheMainframePlayerState::OnRep_PlayerRole()
         PlayerRole == EPlayerRole::Virus ? TEXT("VIRUS") : TEXT("ANTIVIRUS"));
 
     // Acá podés cambiar el material del personaje, mostrar un ícono en el HUD, etc.
+    //o cambiar la iluminacion
 }
 
 
@@ -179,5 +180,5 @@ void AInsideTheMainframePlayerState::OnRep_PlayerStatus()
         *GetPlayerName(),
         PlayerStatus == EPlayerStatus::Alive ? TEXT("VIVO") : TEXT("MUERTO"));
 
-    // Acá podés activar la animación de muerte, mostrar pantalla de respawn, etc.
+    // al final no se usa para nada
 }

@@ -15,6 +15,7 @@ enum class EPlayerRole : uint8
 };
 
 // Enum para el estado de vida — útil para respawn y animaciones
+//no se usa, al final no se muere nunca o es virus o se acaba el tiempo
 UENUM(BlueprintType)
 enum class EPlayerStatus : uint8
 {
